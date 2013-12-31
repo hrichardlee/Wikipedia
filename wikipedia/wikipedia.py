@@ -316,6 +316,23 @@ class WikipediaPage(object):
 
     return self._html
 
+  def wikitext(self):
+    '''
+    Get full page wiki-text
+    '''
+
+    if not getattr(self, '_html', False):
+      query_params = {
+        'prop': 'revisions',
+        'rvprop': 'content',
+        'titles': self.title
+      }
+
+      request = _wiki_request(**query_params)
+      self._html = request['query']['pages'][self.pageid]['revisions'][0]['*']
+
+    return self._html
+
   @property
   def content(self):
     '''
