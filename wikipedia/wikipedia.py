@@ -436,6 +436,77 @@ class WikipediaPage(object):
 
     return self._links
 
+  def backlinks(self):
+    '''
+    List of titles of Wikipedia pages that backlink to the page.
+
+    .. note:: Only includes articles from namespace 0, meaning no Category, User talk, or other meta-Wikipedia pages.
+    '''
+
+    if not getattr(self, '_backlinks', False):
+      self._backlinks = []
+
+      origParams = {
+        'list': 'backlinks',
+        'blnamespace': 0,
+        'bllimit': '500',
+        'blfilterredir': 'nonredirects',
+        'bltitle': self.title,
+      }
+      lastContinue = {'continue': ''}
+
+      # based on https://www.mediawiki.org/wiki/API:Query#Continuing_queries
+      while True:
+        params = origParams.copy()
+        params.update(lastContinue)
+
+        request = _wiki_request(**params)
+        self._backlinks.extend([link['title'] for link in request['query']['backlinks']])
+
+        if 'continue' not in request:
+          break
+
+        lastContinue = request['continue']
+
+    return self._backlinks
+
+  def backlinkCount(self):
+    '''
+    Number of backlinks to the page
+
+    .. note:: Only includes articles from namespace 0, meaning no Category, User talk, or other meta-Wikipedia pages.
+    '''
+
+    if not getattr(self, '_backlinkCount', False):
+      if getattr(self, '_backlinks', False):
+        self._backlinkCount = len(self._backlinks)
+      else:
+        self._backlinkCount = 0
+
+        origParams = {
+          'list': 'backlinks',
+          'blnamespace': 0,
+          'bllimit': '500',
+          'blfilterredir': 'nonredirects',
+          'bltitle': self.title,
+        }
+        lastContinue = {'continue': ''}
+
+        # based on https://www.mediawiki.org/wiki/API:Query#Continuing_queries
+        while True:
+          params = origParams.copy()
+          params.update(lastContinue)
+
+          request = _wiki_request(**params)
+          self._backlinkCount += len(request['query']['backlinks'])
+
+          if 'continue' not in request:
+            break
+
+          lastContinue = request['continue']
+
+    return self._backlinkCount
+
   @property
   def sections(self):
     '''
