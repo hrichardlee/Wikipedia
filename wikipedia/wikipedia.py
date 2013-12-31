@@ -413,17 +413,17 @@ class WikipediaPage(object):
     if not getattr(self, '_links', False):
       self._links = []
 
-      request = {
+      origParams = {
         'prop': 'links',
         'plnamespace': 0,
         'pllimit': 'max',
         'titles': self.title,
       }
-      lastContinue = {}
+      lastContinue = {'continue': ''}
 
       # based on https://www.mediawiki.org/wiki/API:Query#Continuing_queries
       while True:
-        params = request.copy()
+        params = origParams.copy()
         params.update(lastContinue)
 
         request = _wiki_request(**params)
