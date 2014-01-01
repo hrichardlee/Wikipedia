@@ -507,6 +507,37 @@ class WikipediaPage(object):
 
     return self._backlinkCount
 
+  def revCount(self):
+    '''
+    Number of revisions to the page
+    '''
+
+    if not getattr(self, '_revCount', False):
+      self._revCount = 0
+
+      origParams = {
+        'prop': 'revisions',
+        'rvprop': '',
+        'rvlimit': 'max',
+        'titles': self.title,
+      }
+      lastContinue = {'continue': ''}
+
+      # based on https://www.mediawiki.org/wiki/API:Query#Continuing_queries
+      while True:
+        params = origParams.copy()
+        params.update(lastContinue)
+
+        request = _wiki_request(**params)
+        self._revCount += len(request['query']['pages'][self.pageid]['revisions'])
+
+        if 'continue' not in request:
+          break
+
+        lastContinue = request['continue']
+
+    return self._revCount
+
   @property
   def sections(self):
     '''
