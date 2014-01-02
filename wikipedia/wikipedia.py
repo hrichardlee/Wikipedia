@@ -245,38 +245,25 @@ class WikipediaPage(object):
       'titles': self.title
     }
 
+    if redirect:
+      query_params.update({'redirects': ''})
+
     request = _wiki_request(**query_params)
 
     pages = request['query']['pages']
     pageid = list(pages.keys())[0]
     data = pages[pageid]
 
+    if request['query'].get('redirects') and redirect:
+      self.title = request['query']['redirects'][0]['to']
+
     # missing is equal to empty string if it is True
     if data.get('missing') == '':
       raise PageError(self.title)
 
-    # same thing for redirect
-    elif data.get('redirect') == '':
-      if redirect:
-        # change the title and reload the whole object
-        query_params = {
-          'prop': 'extracts',
-          'explaintext': '',
-          'titles': self.title
-        }
-
-        request = _wiki_request(**query_params)
-
-        extract = request['query']['pages'][pageid]['extract']
-
-        # extract should be of the form "REDIRECT <new title>"
-        # ("REDIRECT" could be translated to current language)
-        title = ' '.join(extract.split('\n')[0].split()[1:]).strip()
-
-        self.__init__(title, redirect=redirect, preload=preload)
-
-      else:
-        raise RedirectError(self.title)
+    # the presence of the redirects element indicates a redirect
+    elif request['query'].get('redirects') and not redirect:
+      raise RedirectError(self.title)
 
     # since we only asked for disambiguation in ppprop,
     # if a pageprop is returned,
