@@ -90,6 +90,9 @@ mock_data = {
 
     (('limit', 10), ('list', 'search'), ('srinfo', 'suggestion'), ('srlimit', 10), ('srprop', ''), ('srsearch', 'qmxjsudek')):
     {'query': {'search': []}, 'warnings': {'main': {'*': u"Unrecognized parameter: 'limit'"}}},
+
+    (('indexpageids', ''), ('prop', 'revisions'), ('redirects', ''), ('rvprop', 'size'), ('titles', 'Geode|Albert_Einstein|Menlo_Park, New Jersey')):
+    {"query":{"normalized":[{"from":"Menlo_Park, New Jersey","to":"Menlo Park, New Jersey"},{"from":"Albert_Einstein","to":"Albert Einstein"}],"redirects":[{"from":"Menlo Park, New Jersey","to":"Edison, New Jersey"}],"pageids":["736","428937","125414"],"pages":{"736":{"pageid":736,"ns":0,"title":"Albert Einstein","revisions":[{"size":106218}]},"428937":{"pageid":428937,"ns":0,"title":"Geode","revisions":[{"size":6718}]},"125414":{"pageid":125414,"ns":0,"title":"Edison, New Jersey","revisions":[{"size":86560}]}}}}
   },
 
   "data": {

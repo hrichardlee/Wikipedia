@@ -1,5 +1,6 @@
 import requests
 import time
+import operator
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 
@@ -567,6 +568,59 @@ class WikipediaPage(object):
       next_index = len(self.content)
 
     return self.content[index:next_index].lstrip("=").strip()
+
+# doesn't work for section redirects
+def batchRevSize(titles):
+  query_params = {
+    'prop': 'revisions',
+    'rvprop': 'size',
+    'titles': '|'.join(titles),
+    'redirects': '',
+    'indexpageids': ''
+  }
+
+  request = _wiki_request(**query_params)
+
+  # Unfortunately, Wikipedia does not return pages in the order we requested them
+  # We need to follow the normalizations and redirects
+  titleOrder = {}
+  for ind, t in enumerate(titles):
+    if t in titleOrder:
+      titleOrder[t].append(ind)
+    else:
+      titleOrder[t] = [ind]
+
+  if "normalized" in request["query"]:
+    _followReplacements(titleOrder, request["query"]["normalized"])
+  if "redirects" in request["query"]:
+    _followReplacements(titleOrder, request["query"]["redirects"])
+
+  revSizes = {}
+  for pageid in request["query"]["pageids"]:
+    page = request["query"]["pages"][pageid]
+    for i in titleOrder[page["title"]]:
+      revSizes[i] = page["revisions"][0]["size"]
+
+  return [v for _, v in sorted(revSizes.iteritems(), key=operator.itemgetter(0))]
+
+def _followReplacements(titleOrder, replacements):
+  """titleOrder should be a dictionary of the form {str: [int, int, ...], ...}
+  replacements should be an array of the from [{"from": str, "to": str}, ...]
+  the strs in titleOrder will be replaced according to replacements until there
+  are no replacements to be made. If a replacement in titleOrder results in a
+  collision with another key, the values will be concatenated with each other
+  """
+  replaced = 1
+
+  while replaced > 0:
+    replaced = 0
+    for r in replacements:
+      if (r["from"] in titleOrder):
+        if (r["to"] in titleOrder):
+          titleOrder[r["to"]] = titleOrder[r["to"]].union(titleOrder.pop(r["from"]))
+        else:
+          titleOrder[r["to"]] = titleOrder.pop(r["from"])
+        replaced += 1
 
 
 def donate():
