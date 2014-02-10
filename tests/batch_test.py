@@ -20,15 +20,15 @@ class TestBatch(unittest.TestCase):
 class TestFollowReplacements(unittest.TestCase):
 	def test_one(self):
 		r = [{"from": 1, "to": 2}, {"from": 2, "to": 3}, {"from": 7, "to": 8}]
-		t = {1: set([10]), 7: set([11])}
+		t = {1: [10], 7: [11]}
 		wikipedia._followReplacements(t, r)
 		self.assertEqual(
 			t,
-			{3: set([10]), 8: set([11])})
+			{3: [10], 8: [11]})
 	def test_two(self):
 		r = [{"from": 1, "to": 2}, {"from": 2, "to": 3}, {"from": 7, "to": 8}]
-		t = {1: set([10]), 2: set([12]), 7: set([11])}
+		t = {1: [10], 2: [12], 7: [11]}
 		wikipedia._followReplacements(t, r)
 		self.assertEqual(
 			t,
-			{3: set([10, 12]), 8: set([11])})
+			{3: [10, 12], 8: [11]})

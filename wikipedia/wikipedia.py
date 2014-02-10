@@ -4,6 +4,8 @@ import operator
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 
+import pdb
+
 from .exceptions import PageError, DisambiguationError, RedirectError, HTTPTimeoutError, WikipediaException
 from .util import cache, stdout_encode
 
@@ -569,6 +571,8 @@ class WikipediaPage(object):
 
     return self.content[index:next_index].lstrip("=").strip()
 
+BATCH_LIMIT = 50
+
 # doesn't work for section redirects
 def batchRevSize(titles):
   query_params = {
@@ -606,9 +610,10 @@ def batchRevSize(titles):
 def _followReplacements(titleOrder, replacements):
   """titleOrder should be a dictionary of the form {str: [int, int, ...], ...}
   replacements should be an array of the from [{"from": str, "to": str}, ...]
-  the strs in titleOrder will be replaced according to replacements until there
-  are no replacements to be made. If a replacement in titleOrder results in a
-  collision with another key, the values will be concatenated with each other
+  the strs in titleOrder will be replaced according to replacements until
+  there are no replacements to be made. If a replacement in titleOrder results
+  in a collision with another key, the values will be concatenated with each
+  other
   """
   replaced = 1
 
@@ -617,7 +622,7 @@ def _followReplacements(titleOrder, replacements):
     for r in replacements:
       if (r["from"] in titleOrder):
         if (r["to"] in titleOrder):
-          titleOrder[r["to"]] = titleOrder[r["to"]].union(titleOrder.pop(r["from"]))
+          titleOrder[r["to"]] = titleOrder[r["to"]] + (titleOrder.pop(r["from"]))
         else:
           titleOrder[r["to"]] = titleOrder.pop(r["from"])
         replaced += 1
