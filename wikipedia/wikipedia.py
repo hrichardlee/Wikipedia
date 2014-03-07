@@ -603,7 +603,10 @@ def batchRevSize(titles):
   for pageid in request["query"]["pageids"]:
     page = request["query"]["pages"][pageid]
     for i in titleOrder[page["title"]]:
-      revSizes[i] = page["revisions"][0]["size"]
+      if 'revisions' in page:
+        revSizes[i] = page["revisions"][0]["size"]
+      else:
+        revSizes[i] = 0
 
   return [v for _, v in sorted(revSizes.iteritems(), key=operator.itemgetter(0))]
 
@@ -639,6 +642,7 @@ def donate():
 
 def _wiki_request(**params):
   '''
+
   Make a request to the Wikipedia API using the given search parameters.
   Returns a parsed dict of the JSON response.
   '''
