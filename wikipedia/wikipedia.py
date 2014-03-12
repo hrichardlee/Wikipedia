@@ -105,6 +105,39 @@ def search(query, results=10, suggestion=False):
 
 
 @cache
+def search_all(query):
+  search_params = {
+    'list': 'search',
+    'srprop': '',
+  }
+  search_params['srsearch'] = query
+  last_continue = {'continue': ''}
+
+  search_results = []
+
+  # based on https://www.mediawiki.org/wiki/API:Query#Continuing_queries
+  while True:
+    params = search_params.copy()
+    params.update(last_continue)
+
+    raw_results = _wiki_request(**params)
+
+    if 'error' in raw_results:
+      if raw_results['error']['info'] == 'HTTP request timed out.':
+        raise HTTPTimeoutError(query)
+      else:
+        raise WikipediaException(raw_results['error']['info'])
+
+    if 'continue' not in raw_results:
+      break
+
+    last_continue = raw_results['continue']
+
+    search_results += (d['title'] for d in raw_results['query']['search'])
+
+  return search_results
+
+@cache
 def suggest(query):
   '''
   Get a Wikipedia search suggestion for `query`.
